@@ -1,0 +1,51 @@
+{
+  "manifestVersion": 1,
+  "id": "com.kubek.global-schematics",
+  "name": "Global Schematics",
+  "version": "1.0.0",
+  "description": "Общая папка схематиков (WorldEdit / FAWE) между серверами",
+  "icon": "icon.png",
+  "engines": {
+    "kubek": ">=4.0.0 <5.0.0"
+  },
+  "permissions": {
+    "declares": [
+      {
+        "key": "ext.schematics.view",
+        "label": "Просмотр общих схематиков",
+        "group": "Global Schematics"
+      },
+      {
+        "key": "ext.schematics.upload",
+        "label": "Загрузка схематиков",
+        "group": "Global Schematics"
+      },
+      {
+        "key": "ext.schematics.manage",
+        "label": "Управление симлинками и удаление файлов",
+        "group": "Global Schematics"
+      }
+    ],
+    "requires": [
+      "servers:read",
+      "http:routes"
+    ]
+  },
+  "backend": {
+    "entry": "backend/index.ts"
+  },
+  "frontend": {
+    "entry": "frontend/index.tsx",
+    "contributes": {
+      "sidebar": [
+        {
+          "id": "global-schematics-nav",
+          "label": "globalSchematics.nav.title",
+          "icon": "Layers",
+          "route": "com.kubek.global-schematics",
+          "permission": "ext.schematics.view"
+        }
+      ]
+    }
+  }
+}

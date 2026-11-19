@@ -1,0 +1,20 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Build .kubekext",
+      "type": "shell",
+      "command": "export PATH=\"$HOME/.bun/bin:$PATH\" && bun run build.ts && OUT=$(bun -e 'const m = require(\"./kubek-extension.json\"); console.log(m.id.split(\".\").pop() + \"-\" + m.version + \".kubekext\")') && rm -f *.kubekext && zip -r \"$OUT\" kubek-extension.json tsconfig.json backend frontend locales icon.png && echo \"Packed: $OUT\"",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared",
+        "clear": true
+      }
+    }
+  ]
+}

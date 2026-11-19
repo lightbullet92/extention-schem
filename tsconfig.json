@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "types": ["bun", "react"],
+    "jsx": "react",
+    "jsxFactory": "window.Kubek.React.createElement",
+    "jsxFragmentFactory": "window.Kubek.React.Fragment",
+    "strict": true,
+    "noImplicitAny": false,
+    "skipLibCheck": true
+  }
+}
