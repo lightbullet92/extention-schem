@@ -20,7 +20,10 @@ A **Kubek 4.1+** extension that unifies the schematics folder (`WorldEdit` and `
 ```text
 kubek-extension.json          extension manifest (capabilities, permissions, sidebar route)
 backend/
-  index.ts                    entry point activate(), RLE encoder, and HTTP routes
+  index.ts                    compact entry point activate() and route registration
+  routes/
+    servers.ts                HTTP routes GET /servers and POST /sync (symlink management)
+    schematics.ts             HTTP routes /schematics, /inspect (with RLE), /upload, and /delete
   symlinks.ts                 symlink management facade
   symlinks/
     types.ts                  path constants and server state interfaces

@@ -20,7 +20,10 @@
 ```text
 kubek-extension.json          манифест расширения (права доступа, capabilities, пункт меню)
 backend/
-  index.ts                    точка входа activate(), RLE-сжатие и регистрация HTTP-маршрутов
+  index.ts                    компактная точка входа activate() и подключение модулей маршрутов
+  routes/
+    servers.ts                HTTP-маршруты GET /servers и POST /sync (управление симлинками)
+    schematics.ts             HTTP-маршруты /schematics, /inspect (с RLE), /upload и /delete
   symlinks.ts                 фасад модуля управления симлинками
   symlinks/
     types.ts                  константы путей и интерфейсы состояния серверов
