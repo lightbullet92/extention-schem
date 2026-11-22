@@ -1,28 +1,27 @@
 import fs from "node:fs/promises";
+import path from "node:path";
 import type {
   ExtRequest,
   ExtResponse,
   KubekExtensionContext,
 } from "@kubekpanel/extension-sdk";
-import { parseSchematicBuffer } from "./nbt";
 import {
   collectSchematics,
   resolveSafeSchematicPath,
   saveUploadedChunk,
-  type SchematicListItem,
 } from "./files";
+import { parseSchematicBuffer } from "./nbt";
 import {
   detectSchematicsTarget,
   ensureGlobalDir,
   isSymlinkLinkedToGlobal,
-  linkServerSchematics,
-  unlinkServerSchematics,
-  type ServerSchematicsInfo,
+  linkServerToGlobal,
+  unlinkServerFromGlobal,
+  type ServerSymlinkState,
 } from "./symlinks";
 
 export async function activate(ctx: KubekExtensionContext): Promise<void> {
-  const globalDir = await ensureGlobalDir();
-  ctx.logger.info("Global Schematics activated: " + globalDir);
+  ctx.logger.info("Global Schematics & 3D Viewer activated");
 
   ctx.http.registerRoutes([
     {
@@ -30,25 +29,28 @@ export async function activate(ctx: KubekExtensionContext): Promise<void> {
       path: "/servers",
       permission: "ext.schematics.view",
       handler: async (_req: ExtRequest, res: ExtResponse) => {
-        const dir = await ensureGlobalDir();
-        const items: ServerSchematicsInfo[] = [];
+        const globalDir = await ensureGlobalDir();
+        const servers = ctx.servers.list();
+        const result: ServerSymlinkState[] = [];
 
-        for (const srv of ctx.servers.list()) {
+        for (const srv of servers) {
           const target = await detectSchematicsTarget(srv);
           if (!target) continue;
-
-          const isLinked = await isSymlinkLinkedToGlobal(target.schematicsPath, dir);
-          items.push({
+          const linked = await isSymlinkLinkedToGlobal(
+            target.schematicsPath,
+            globalDir,
+          );
+          result.push({
             id: srv.id,
             name: srv.name,
+            status: String(srv.status),
             plugin: target.plugin,
             schematicsPath: target.schematicsPath,
-            isLinked,
+            linked,
           });
         }
 
-        items.sort((a, b) => a.name.localeCompare(b.name));
-        res.json({ globalDir: dir, servers: items });
+        res.json({ servers: result });
       },
     },
     {
@@ -56,22 +58,29 @@ export async function activate(ctx: KubekExtensionContext): Promise<void> {
       path: "/sync",
       permission: "ext.schematics.manage",
       handler: async (req: ExtRequest, res: ExtResponse) => {
-        const dir = await ensureGlobalDir();
-        const body = req.body as { enabledIds?: string[] } | null;
-        const enabledSet = new Set((body?.enabledIds ?? []) as string[]);
+        try {
+          const rawBody = typeof req.body === "string" ? JSON.parse(req.body) : req.body;
+          const body = rawBody as { serverIds?: string[] } | null;
+          const selectedSet = new Set(body?.serverIds ?? []);
+          const globalDir = await ensureGlobalDir();
+          const servers = ctx.servers.list();
 
-        for (const srv of ctx.servers.list()) {
-          const target = await detectSchematicsTarget(srv);
-          if (!target) continue;
+          for (const srv of servers) {
+            const target = await detectSchematicsTarget(srv);
+            if (!target) continue;
 
-          if (enabledSet.has(srv.id)) {
-            await linkServerSchematics(target.schematicsPath, dir);
-          } else {
-            await unlinkServerSchematics(target.schematicsPath);
+            if (selectedSet.has(srv.id)) {
+              await linkServerToGlobal(target.schematicsPath, globalDir);
+            } else {
+              await unlinkServerFromGlobal(target.schematicsPath, globalDir);
+            }
           }
-        }
 
-        res.json({ ok: true });
+          res.json({ ok: true });
+        } catch (err) {
+          ctx.logger.error("Failed to sync server symlinks", err);
+          res.status(500).json({ error: String(err) });
+        }
       },
     },
     {
@@ -80,9 +89,7 @@ export async function activate(ctx: KubekExtensionContext): Promise<void> {
       permission: "ext.schematics.view",
       handler: async (_req: ExtRequest, res: ExtResponse) => {
         const dir = await ensureGlobalDir();
-        const files: SchematicListItem[] = [];
-        await collectSchematics(dir, dir, files);
-        files.sort((a, b) => a.name.localeCompare(b.name));
+        const files = await collectSchematics(dir);
         res.json({ files });
       },
     },
@@ -91,19 +98,26 @@ export async function activate(ctx: KubekExtensionContext): Promise<void> {
       path: "/schematics/inspect",
       permission: "ext.schematics.view",
       handler: async (req: ExtRequest, res: ExtResponse) => {
-        const body = req.body as { name?: string } | null;
-        const dir = await ensureGlobalDir();
-        const filePath = resolveSafeSchematicPath(dir, body?.name ?? "");
-
-        if (!filePath) {
-          res.status(400).json({ error: "Некорректный путь к файлу" });
-          return;
-        }
-
         try {
-          const buf = await fs.readFile(filePath);
-          const parsed = parseSchematicBuffer(new Uint8Array(buf));
-          res.json({ name: (body?.name ?? "").trim(), ...parsed });
+          const rawBody = typeof req.body === "string" ? JSON.parse(req.body) : req.body;
+          const body = rawBody as { name?: string } | null;
+          const name = String(body?.name ?? req.query?.name ?? "");
+          if (!name) {
+            res.status(400).json({ error: "Не указано имя файла" });
+            return;
+          }
+
+          const dir = await ensureGlobalDir();
+          const filePath = resolveSafeSchematicPath(dir, name);
+          const stat = await fs.stat(filePath);
+          const buf = new Uint8Array(await fs.readFile(filePath));
+          const parsed = parseSchematicBuffer(buf);
+
+          res.json({
+            name,
+            size: stat.size,
+            ...parsed,
+          });
         } catch (err) {
           res.status(400).json({ error: "Ошибка чтения схематика: " + String(err) });
         }
@@ -148,17 +162,22 @@ export async function activate(ctx: KubekExtensionContext): Promise<void> {
       path: "/schematics/delete",
       permission: "ext.schematics.manage",
       handler: async (req: ExtRequest, res: ExtResponse) => {
-        const body = req.body as { name?: string } | null;
-        const dir = await ensureGlobalDir();
-        const filePath = resolveSafeSchematicPath(dir, body?.name ?? "");
+        try {
+          const rawBody = typeof req.body === "string" ? JSON.parse(req.body) : req.body;
+          const body = rawBody as { name?: string } | null;
+          const name = body?.name ?? "";
+          if (!name) {
+            res.status(400).json({ error: "Не указано имя файла" });
+            return;
+          }
 
-        if (!filePath) {
-          res.status(400).json({ error: "Некорректный путь к файлу" });
-          return;
+          const dir = await ensureGlobalDir();
+          const filePath = resolveSafeSchematicPath(dir, name);
+          await fs.unlink(filePath);
+          res.json({ ok: true });
+        } catch (err) {
+          res.status(400).json({ error: "Ошибка удаления: " + String(err) });
         }
-
-        await fs.rm(filePath, { force: true });
-        res.json({ ok: true });
       },
     },
   ]);

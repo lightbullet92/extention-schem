@@ -1,5 +1,11 @@
 import fs from "node:fs/promises";
 import path from "node:path";
+import { GLOBAL_SCHEMATICS_DIR } from "./types";
+
+export async function ensureGlobalDir(): Promise<string> {
+  await fs.mkdir(GLOBAL_SCHEMATICS_DIR, { recursive: true });
+  return GLOBAL_SCHEMATICS_DIR;
+}
 
 async function exists(p: string): Promise<boolean> {
   try {

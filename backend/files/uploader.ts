@@ -11,31 +11,30 @@ interface PendingUpload {
 
 const pendingUploads = new Map<string, PendingUpload>();
 
-export interface ChunkUploadPayload {
+export interface SaveChunkParams {
+  baseDir: string;
   uploadId: string;
-  name: string;
+  fileName: string;
   folder?: string;
   chunkIndex: number;
   totalChunks: number;
   dataBase64: string;
 }
 
-export async function handleChunkedUpload(
-  baseDir: string,
-  payload: ChunkUploadPayload,
-): Promise<{ ok: boolean; completed: boolean; name?: string }> {
-  const cleanFileName = path.basename(payload.name.trim());
+export async function saveUploadedChunk(
+  params: SaveChunkParams,
+): Promise<{ completed: boolean; name?: string }> {
+  const cleanFileName = path.basename(params.fileName.trim());
   if (!cleanFileName || !isSchematicFile(cleanFileName)) {
     throw new Error("Поддерживаются только файлы .schem, .schematic и .litematic");
   }
 
-  const total = Math.max(1, payload.totalChunks);
-  const idx = payload.chunkIndex;
+  const total = Math.max(1, params.totalChunks);
+  const idx = params.chunkIndex;
   if (idx < 0 || idx >= total) {
     throw new Error("Некорректный индекс чанка");
   }
 
-  // Очищаем зависшие загрузки старше 10 минут
   const now = Date.now();
   for (const [key, item] of pendingUploads.entries()) {
     if (now - item.updatedAt > 10 * 60 * 1000) {
@@ -43,17 +42,17 @@ export async function handleChunkedUpload(
     }
   }
 
-  let entry = pendingUploads.get(payload.uploadId);
+  let entry = pendingUploads.get(params.uploadId);
   if (!entry) {
     entry = {
       chunks: new Array<Uint8Array | null>(total).fill(null),
       received: 0,
       updatedAt: now,
     };
-    pendingUploads.set(payload.uploadId, entry);
+    pendingUploads.set(params.uploadId, entry);
   }
 
-  const chunkBytes = new Uint8Array(Buffer.from(payload.dataBase64, "base64"));
+  const chunkBytes = new Uint8Array(Buffer.from(params.dataBase64, "base64"));
   if (entry.chunks[idx] === null) {
     entry.received += 1;
   }
@@ -61,10 +60,10 @@ export async function handleChunkedUpload(
   entry.updatedAt = now;
 
   if (entry.received < total) {
-    return { ok: true, completed: false };
+    return { completed: false };
   }
 
-  pendingUploads.delete(payload.uploadId);
+  pendingUploads.delete(params.uploadId);
 
   const totalSize = entry.chunks.reduce((sum, c) => sum + (c ? c.length : 0), 0);
   const fullBuffer = new Uint8Array(totalSize);
@@ -76,15 +75,14 @@ export async function handleChunkedUpload(
     }
   }
 
-  // Валидируем NBT-структуру перед записью на диск
   parseSchematicBuffer(fullBuffer);
 
-  const cleanFolder = sanitizeFolder(payload.folder ?? "");
+  const cleanFolder = sanitizeFolder(params.folder ?? "");
   const relPath = cleanFolder ? cleanFolder + "/" + cleanFileName : cleanFileName;
-  const targetPath = resolveSafeFilePath(baseDir, relPath);
+  const targetPath = resolveSafeFilePath(params.baseDir, relPath);
 
   await fs.mkdir(path.dirname(targetPath), { recursive: true });
   await fs.writeFile(targetPath, fullBuffer);
 
-  return { ok: true, completed: true, name: relPath };
+  return { completed: true, name: relPath };
 }
