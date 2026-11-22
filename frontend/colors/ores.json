@@ -1,0 +1,15 @@
+[
+  { "match": ["oxidized_copper"], "rgb": { "r": 82, "g": 162, "b": 132 } },
+  { "match": ["weathered_copper"], "rgb": { "r": 108, "g": 152, "b": 110 } },
+  { "match": ["exposed_copper"], "rgb": { "r": 162, "g": 125, "b": 102 } },
+  { "match": ["copper"], "rgb": { "r": 192, "g": 108, "b": 78 } },
+  { "match": ["ancient_debris", "netherite"], "rgb": { "r": 68, "g": 58, "b": 60 } },
+  { "match": ["amethyst"], "rgb": { "r": 148, "g": 98, "b": 198 } },
+  { "match": ["diamond"], "rgb": { "r": 92, "g": 215, "b": 210 } },
+  { "match": ["emerald"], "rgb": { "r": 55, "g": 198, "b": 95 } },
+  { "match": ["gold"], "rgb": { "r": 238, "g": 198, "b": 52 } },
+  { "match": ["lapis"], "rgb": { "r": 42, "g": 78, "b": 175 } },
+  { "match": ["redstone"], "rgb": { "r": 182, "g": 38, "b": 34 } },
+  { "match": ["iron"], "rgb": { "r": 215, "g": 215, "b": 215 } },
+  { "match": ["coal"], "rgb": { "r": 46, "g": 46, "b": 50 } }
+]

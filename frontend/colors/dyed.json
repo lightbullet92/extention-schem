@@ -1,0 +1,20 @@
+[
+  { "match": ["light_gray"], "rgb": { "r": 155, "g": 155, "b": 150 } },
+  { "match": ["light_blue"], "rgb": { "r": 85, "g": 175, "b": 225 } },
+  { "match": ["magenta"], "rgb": { "r": 192, "g": 78, "b": 182 } },
+  { "match": ["cyan"], "rgb": { "r": 28, "g": 148, "b": 158 } },
+  { "match": ["lime"], "rgb": { "r": 115, "g": 192, "b": 42 } },
+  { "match": ["pink"], "rgb": { "r": 238, "g": 142, "b": 172 } },
+  { "match": ["purple"], "rgb": { "r": 128, "g": 52, "b": 178 } },
+  { "match": ["orange"], "rgb": { "r": 235, "g": 118, "b": 32 } },
+  { "match": ["yellow"], "rgb": { "r": 242, "g": 205, "b": 45 } },
+  { "match": ["green"], "rgb": { "r": 78, "g": 118, "b": 42 } },
+  { "match": ["blue"], "rgb": { "r": 52, "g": 68, "b": 175 } },
+  { "match": ["brown"], "rgb": { "r": 115, "g": 72, "b": 44 } },
+  { "match": ["red"], "rgb": { "r": 168, "g": 42, "b": 38 } },
+  { "match": ["gray"], "rgb": { "r": 68, "g": 72, "b": 76 } },
+  { "match": ["black"], "rgb": { "r": 28, "g": 28, "b": 34 } },
+  { "match": ["white"], "rgb": { "r": 236, "g": 238, "b": 240 } },
+  { "match": ["terracotta"], "rgb": { "r": 152, "g": 94, "b": 68 } },
+  { "match": ["glass"], "rgb": { "r": 185, "g": 220, "b": 238 } }
+]

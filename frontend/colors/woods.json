@@ -1,0 +1,13 @@
+[
+  { "match": ["dark_oak"], "rgb": { "r": 66, "g": 43, "b": 20 } },
+  { "match": ["spruce"], "rgb": { "r": 105, "g": 72, "b": 42 } },
+  { "match": ["birch"], "rgb": { "r": 205, "g": 195, "b": 145 } },
+  { "match": ["jungle"], "rgb": { "r": 160, "g": 115, "b": 82 } },
+  { "match": ["acacia"], "rgb": { "r": 175, "g": 95, "b": 52 } },
+  { "match": ["mangrove"], "rgb": { "r": 118, "g": 52, "b": 48 } },
+  { "match": ["cherry"], "rgb": { "r": 225, "g": 172, "b": 182 } },
+  { "match": ["bamboo"], "rgb": { "r": 198, "g": 182, "b": 82 } },
+  { "match": ["crimson"], "rgb": { "r": 122, "g": 48, "b": 78 } },
+  { "match": ["warped"], "rgb": { "r": 45, "g": 132, "b": 128 } },
+  { "match": ["oak", "planks", "log", "wood"], "rgb": { "r": 162, "g": 130, "b": 78 } }
+]

@@ -2,7 +2,7 @@
   "manifestVersion": 1,
   "id": "com.kubek.global-schematics",
   "name": "Global Schematics",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Общая папка схематиков (WorldEdit / FAWE) между серверами",
   "icon": "icon.png",
   "engines": {

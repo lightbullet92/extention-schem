@@ -1,0 +1,10 @@
+[
+  { "match": ["ochre_froglight"], "rgb": { "r": 245, "g": 228, "b": 168 } },
+  { "match": ["verdant_froglight"], "rgb": { "r": 182, "g": 238, "b": 185 } },
+  { "match": ["pearlescent_froglight"], "rgb": { "r": 238, "g": 205, "b": 232 } },
+  { "match": ["shroomlight"], "rgb": { "r": 242, "g": 152, "b": 68 } },
+  { "match": ["sea_lantern"], "rgb": { "r": 178, "g": 222, "b": 215 } },
+  { "match": ["glowstone", "jack_o_lantern"], "rgb": { "r": 240, "g": 192, "b": 82 } },
+  { "match": ["soul_lantern", "soul_torch", "soul_campfire"], "rgb": { "r": 85, "g": 215, "b": 225 } },
+  { "match": ["lantern", "torch", "campfire", "candle"], "rgb": { "r": 245, "g": 175, "b": 65 } }
+]

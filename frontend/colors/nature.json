@@ -1,0 +1,18 @@
+[
+  { "match": ["red_sand"], "rgb": { "r": 192, "g": 102, "b": 38 } },
+  { "match": ["soul_sand", "soul_soil"], "rgb": { "r": 82, "g": 64, "b": 52 } },
+  { "match": ["sand"], "rgb": { "r": 225, "g": 215, "b": 165 } },
+  { "match": ["mud"], "rgb": { "r": 62, "g": 58, "b": 64 } },
+  { "match": ["dirt", "farmland", "coarse_dirt", "rooted_dirt"], "rgb": { "r": 134, "g": 96, "b": 67 } },
+  { "match": ["grass", "fern", "bamboo_sapling"], "rgb": { "r": 95, "g": 159, "b": 53 } },
+  { "match": ["azalea", "moss", "vine", "lily_pad", "kelp", "seagrass"], "rgb": { "r": 72, "g": 138, "b": 52 } },
+  { "match": ["cherry_leaves"], "rgb": { "r": 235, "g": 178, "b": 198 } },
+  { "match": ["leaves"], "rgb": { "r": 58, "g": 122, "b": 42 } },
+  { "match": ["water"], "rgb": { "r": 45, "g": 110, "b": 215 } },
+  { "match": ["lava", "magma"], "rgb": { "r": 225, "g": 95, "b": 25 } },
+  { "match": ["packed_ice", "blue_ice"], "rgb": { "r": 135, "g": 178, "b": 245 } },
+  { "match": ["ice"], "rgb": { "r": 165, "g": 205, "b": 245 } },
+  { "match": ["snow"], "rgb": { "r": 242, "g": 246, "b": 248 } },
+  { "match": ["clay"], "rgb": { "r": 158, "g": 164, "b": 176 } },
+  { "match": ["sculk"], "rgb": { "r": 22, "g": 52, "b": 64 } }
+]
