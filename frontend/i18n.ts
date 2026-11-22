@@ -19,7 +19,7 @@ const FALLBACK_RU: Record<string, string> = {
   "globalSchematics.viewer.files": "Файлы",
   "globalSchematics.viewer.refresh": "Обновить",
   "globalSchematics.viewer.loadingList": "Загрузка...",
-  "globalSchematics.viewer.emptyFiles": "В папке global_schematics пока нет файлов .schem или .schematic",
+  "globalSchematics.viewer.emptyFiles": "В папке global_schematics пока нет файлов .schem, .schematic или .litematic",
   "globalSchematics.viewer.deleteConfirm": "Удалить файл из общей папки?",
   "globalSchematics.viewer.deleteTitle": "Удалить файл",
   "globalSchematics.viewer.parsing": "Разбор структуры схематика...",

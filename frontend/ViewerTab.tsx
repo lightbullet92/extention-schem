@@ -5,7 +5,23 @@ import { SchematicFilesPanel } from "./SchematicFilesPanel";
 import type { InspectedSchematic, SchematicFileInfo } from "./types";
 import { ViewerControls } from "./ViewerControls";
 
-export function ViewerTab({ tr }: { tr: (k: string) => string }) {
+function decodeBlocksRle(rle: number[], volume: number): number[] {
+  const out = new Array<number>(volume).fill(0);
+  let pos = 0;
+  for (let i = 0; i < rle.length; i += 2) {
+    const val = rle[i] ?? 0;
+    const count = rle[i + 1] ?? 0;
+    out.fill(val, pos, Math.min(volume, pos + count));
+    pos += count;
+  }
+  return out;
+}
+
+interface ViewerTabProps {
+  tr: (k: string) => string;
+}
+
+export function ViewerTab({ tr }: ViewerTabProps) {
   const React = window.Kubek!.React as typeof import("react");
   const h = React.createElement;
   const { useEffect, useState } = React;
@@ -13,8 +29,8 @@ export function ViewerTab({ tr }: { tr: (k: string) => string }) {
   const [files, setFiles] = useState([] as SchematicFileInfo[]);
   const [loadingList, setLoadingList] = useState(true);
   const [selectedName, setSelectedName] = useState(null as string | null);
-  const [schem, setSchem] = useState(null as InspectedSchematic | null);
-  const [loadingSchem, setLoadingSchem] = useState(false);
+  const [inspected, setInspected] = useState(null as InspectedSchematic | null);
+  const [loadingInspect, setLoadingInspect] = useState(false);
   const [error, setError] = useState(null as string | null);
 
   const [viewMode, setViewMode] = useState("3d" as "3d" | "layer");
@@ -22,9 +38,8 @@ export function ViewerTab({ tr }: { tr: (k: string) => string }) {
   const [zoom, setZoom] = useState(1);
   const [layerY, setLayerY] = useState(0);
 
-  const loadFiles = async () => {
+  const fetchList = async () => {
     setLoadingList(true);
-    setError(null);
     try {
       const http = window.Kubek?.http;
       if (!http) return;
@@ -35,7 +50,7 @@ export function ViewerTab({ tr }: { tr: (k: string) => string }) {
       setFiles(list);
       if (selectedName && !list.some((f) => f.name === selectedName)) {
         setSelectedName(null);
-        setSchem(null);
+        setInspected(null);
       }
     } catch (err) {
       setError(String(err));
@@ -44,31 +59,36 @@ export function ViewerTab({ tr }: { tr: (k: string) => string }) {
     }
   };
 
-  const inspectFile = async (name: string) => {
+  useEffect(() => {
+    void fetchList();
+  }, []);
+
+  const handleSelectFile = async (name: string) => {
     setSelectedName(name);
-    setLoadingSchem(true);
+    setLoadingInspect(true);
     setError(null);
     try {
       const http = window.Kubek?.http;
       if (!http) return;
-      const data = (await http.post("ext/" + EXT_ID + "/schematics/inspect", {
+      const res = (await http.post("ext/" + EXT_ID + "/schematics/inspect", {
         name,
-      })) as InspectedSchematic;
-      setSchem(data);
-      setLayerY(0);
+      })) as InspectedSchematic & { blocksRle?: number[] };
+
+      if (Array.isArray(res.blocksRle)) {
+        res.blocks = decodeBlocksRle(res.blocksRle, res.width * res.height * res.length);
+      }
+
+      setInspected(res);
       setRotation(0);
       setZoom(1);
+      setLayerY(Math.floor(res.height / 2));
     } catch (err) {
       setError(String(err));
-      setSchem(null);
+      setInspected(null);
     } finally {
-      setLoadingSchem(false);
+      setLoadingInspect(false);
     }
   };
-
-  useEffect(() => {
-    void loadFiles();
-  }, []);
 
   return h(
     "div",
@@ -84,57 +104,79 @@ export function ViewerTab({ tr }: { tr: (k: string) => string }) {
       files,
       loadingList,
       selectedName,
-      onSelectFile: (name) => void inspectFile(name),
-      onRefreshList: loadFiles,
+      onSelectFile: (name) => void handleSelectFile(name),
+      onRefreshList: fetchList,
       onError: setError,
       tr,
     }),
 
     h(
       "div",
-      { style: { display: "flex", flexDirection: "column", gap: "16px" } },
-      error ? h("p", { style: { color: "#ef4444", fontSize: "14px" } }, error) : null,
+      { style: { minWidth: 0 } },
+      error
+        ? h(
+            "p",
+            { style: { color: "#ef4444", fontSize: "13px", marginBottom: "12px" } },
+            error,
+          )
+        : null,
 
-      loadingSchem
-        ? h("p", null, tr("viewer.parsing"))
-        : !schem
+      loadingInspect
+        ? h(
+            "div",
+            {
+              style: {
+                padding: "48px",
+                textAlign: "center",
+                borderRadius: "10px",
+                border: "1px solid rgba(128, 128, 128, 0.22)",
+                opacity: 0.75,
+              },
+            },
+            tr("viewer.loadingInspect"),
+          )
+        : !inspected
           ? h(
               "div",
               {
                 style: {
-                  padding: "48px 24px",
-                  borderRadius: "10px",
-                  border: "1px dashed rgba(128, 128, 128, 0.3)",
+                  padding: "48px",
                   textAlign: "center",
+                  borderRadius: "10px",
+                  border: "1px solid rgba(128, 128, 128, 0.22)",
                   opacity: 0.65,
+                  fontSize: "14px",
                 },
               },
-              tr("viewer.selectPrompt"),
+              tr("viewer.selectHint"),
             )
           : h(
-              React.Fragment,
-              null,
+              "div",
+              { style: { display: "flex", flexDirection: "column", gap: "16px" } },
               h(ViewerControls, {
-                schem,
+                schem: inspected,
                 viewMode,
-                layerY,
                 onChangeMode: setViewMode,
-                onRotate: () => setRotation((r) => r + 1),
-                onZoomIn: () => setZoom((z) => Math.min(4, z + 0.25)),
-                onZoomOut: () => setZoom((z) => Math.max(0.25, z - 0.25)),
+                onRotate: () => setRotation((r) => (r + 1) % 4),
+                onZoomIn: () => setZoom((z) => Math.min(4, +(z + 0.25).toFixed(2))),
+                onZoomOut: () => setZoom((z) => Math.max(0.25, +(z - 0.25).toFixed(2))),
+                layerY,
                 onChangeLayer: setLayerY,
                 tr,
               }),
               h(SchematicCanvas, {
-                schem,
+                schem: inspected,
                 viewMode,
                 rotation,
                 zoom,
                 layerY,
-                onRotateStep: (delta) => setRotation((r) => r + delta),
+                onRotateStep: (delta) => setRotation((r) => (r + delta + 4) % 4),
                 tr,
               }),
-              h(MaterialsList, { materials: schem.materials, tr }),
+              h(MaterialsList, {
+                materials: inspected.materials,
+                tr,
+              }),
             ),
     ),
   );

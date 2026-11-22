@@ -1,5 +1,4 @@
 import fs from "node:fs/promises";
-import path from "node:path";
 import type {
   ExtRequest,
   ExtResponse,
@@ -19,6 +18,21 @@ import {
   unlinkServerFromGlobal,
   type ServerSymlinkState,
 } from "./symlinks";
+
+function encodeBlocksRle(blocks: number[]): number[] {
+  const rle: number[] = [];
+  let i = 0;
+  while (i < blocks.length) {
+    const val = blocks[i] ?? 0;
+    let count = 1;
+    while (i + count < blocks.length && blocks[i + count] === val) {
+      count += 1;
+    }
+    rle.push(val, count);
+    i += count;
+  }
+  return rle;
+}
 
 export async function activate(ctx: KubekExtensionContext): Promise<void> {
   ctx.logger.info("Global Schematics & 3D Viewer activated");
@@ -113,10 +127,12 @@ export async function activate(ctx: KubekExtensionContext): Promise<void> {
           const buf = new Uint8Array(await fs.readFile(filePath));
           const parsed = parseSchematicBuffer(buf);
 
+          const { blocks, ...rest } = parsed;
           res.json({
             name,
             size: stat.size,
-            ...parsed,
+            ...rest,
+            blocksRle: encodeBlocksRle(blocks),
           });
         } catch (err) {
           res.status(400).json({ error: "Ошибка чтения схематика: " + String(err) });

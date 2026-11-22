@@ -18,7 +18,7 @@
   "globalSchematics.viewer.files": "Files",
   "globalSchematics.viewer.refresh": "Refresh",
   "globalSchematics.viewer.loadingList": "Loading...",
-  "globalSchematics.viewer.emptyFiles": "No .schem or .schematic files in global_schematics yet",
+  "globalSchematics.viewer.emptyFiles": "No .schem, .schematic, or .litematic files found in global_schematics",
   "globalSchematics.viewer.deleteConfirm": "Delete file from shared folder?",
   "globalSchematics.viewer.deleteTitle": "Delete file",
   "globalSchematics.viewer.parsing": "Parsing schematic structure...",
