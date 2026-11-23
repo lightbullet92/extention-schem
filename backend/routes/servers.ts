@@ -21,7 +21,7 @@ export function createServerRoutes(ctx: KubekExtensionContext) {
       handler: async (_req: ExtRequest, res: ExtResponse) => {
         const globalDir = await ensureGlobalDir();
         const servers = ctx.servers.list();
-        const result: ServerSymlinkState[] = [];
+        const result: Array<ServerSymlinkState & { isLinked: boolean }> = [];
 
         for (const srv of servers) {
           const target = await detectSchematicsTarget(srv);
@@ -37,10 +37,11 @@ export function createServerRoutes(ctx: KubekExtensionContext) {
             plugin: target.plugin,
             schematicsPath: target.schematicsPath,
             linked,
+            isLinked: linked,
           });
         }
 
-        res.json({ servers: result });
+        res.json({ globalDir, servers: result });
       },
     },
     {
@@ -50,8 +51,9 @@ export function createServerRoutes(ctx: KubekExtensionContext) {
       handler: async (req: ExtRequest, res: ExtResponse) => {
         try {
           const rawBody = typeof req.body === "string" ? JSON.parse(req.body) : req.body;
-          const body = rawBody as { serverIds?: string[] } | null;
-          const selectedSet = new Set(body?.serverIds ?? []);
+          const body = rawBody as { enabledIds?: string[]; serverIds?: string[] } | null;
+          const ids = body?.enabledIds ?? body?.serverIds ?? [];
+          const selectedSet = new Set(ids);
           const globalDir = await ensureGlobalDir();
           const servers = ctx.servers.list();
 
