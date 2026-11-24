@@ -133,7 +133,7 @@ export function ViewerTab({ tr }: ViewerTabProps) {
                 opacity: 0.75,
               },
             },
-            tr("viewer.loadingInspect"),
+            tr("viewer.parsing"),
           )
         : !inspected
           ? h(
@@ -148,7 +148,7 @@ export function ViewerTab({ tr }: ViewerTabProps) {
                   fontSize: "14px",
                 },
               },
-              tr("viewer.selectHint"),
+              tr("viewer.selectPrompt"),
             )
           : h(
               "div",
